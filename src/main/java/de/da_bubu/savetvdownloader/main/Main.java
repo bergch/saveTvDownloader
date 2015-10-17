@@ -66,13 +66,19 @@ public class Main {
 
     NameMatcher nameMatcher = new NameMatcher(new Repository());
 
-    public Main(String dbName, String dbHost, String dbPassword, String dbPort, String dbUser) {
+    private String saveTvUser;
+
+    private String saveTvPassword;
+
+    public Main(String dbName, String dbHost, String dbPassword, String dbPort, String dbUser, String saveTvUser, String saveTvPassword) {
         MySQLRecordingManager.DB = dbName;
         MySQLRecordingManager.DBHOST = dbHost;
         MySQLRecordingManager.DBPASSWORD = dbPassword;
         MySQLRecordingManager.DBPORT = dbPort;
         MySQLRecordingManager.DBUSER = dbUser;
         
+        this.saveTvUser = saveTvUser;
+        this.saveTvPassword = saveTvPassword;
         mysql = new MySQLRecordingManager();
     }
 
@@ -84,6 +90,8 @@ public class Main {
         options.addOption(CommandLineArguments.DBPASSWORD, true, "local path");
         options.addOption(CommandLineArguments.DBPORT, true, "local path");
         options.addOption(CommandLineArguments.DBUSER, true, "local path");
+        options.addOption(CommandLineArguments.SAVETVPASSWORD, true, "local path");
+        options.addOption(CommandLineArguments.SAVETVUSER, true, "local path");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
@@ -98,8 +106,10 @@ public class Main {
         String dbPassword = cmd.getOptionValue(CommandLineArguments.DBPASSWORD);
         String dbPort = cmd.getOptionValue(CommandLineArguments.DBPORT);
         String dbUser = cmd.getOptionValue(CommandLineArguments.DBUSER);
+        String saveTvUser = cmd.getOptionValue(CommandLineArguments.SAVETVUSER);
+        String saveTvPassword = cmd.getOptionValue(CommandLineArguments.SAVETVPASSWORD);
 
-        Main main = new Main(dbName, dbHost, dbPassword, dbPort, dbUser);
+        Main main = new Main(dbName, dbHost, dbPassword, dbPort, dbUser, saveTvUser, saveTvPassword);
         try {
             main.start();
         } catch (Exception e) {
@@ -110,7 +120,8 @@ public class Main {
     private void start() throws Exception {
         client = getNewHttpClient();
         try {
-            logonToSaveTV("chberg84", "Okdp90w9Hm");
+
+            logonToSaveTV(saveTvUser, saveTvPassword);
             String content = executeGet("https://www.save.tv/STV/M/obj/archive/JSON/VideoArchiveApi.cfm?iEntriesPerPage="
                     + numberOfRecordings
                     + "&iCurrentPage=1&iFilterType=1&sSearchString=&iTextSearchType=0&iChannelId=0&iTvCategoryId=0&iTvSubCategoryId=0&bShowNoFollower=false&iRecordingState=1&sSortOrder=StartDateDESC&iTvStationGroupId=0&iRecordAge=0&iDaytime=0");

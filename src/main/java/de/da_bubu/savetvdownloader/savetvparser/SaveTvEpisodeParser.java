@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,7 +35,7 @@ public class SaveTvEpisodeParser {
             }
             
             // only add addfree recordings
-            if("true".equals(recording.getBADFREEAVAILABLE())) {
+            if("true".equals(recording.getBADFREEAVAILABLE()) || "1".equals(recording.getBADFREEAVAILABLE())) {
                 parsedRecordings.add(recording);
             }
         }
@@ -45,7 +46,13 @@ public class SaveTvEpisodeParser {
 
 
     private List<ParsedRecording> sort(List<ParsedRecording> recordings) {
-        recordings.sort((p1, p2) -> new BigDecimal(p1.getIDAYSLEFTBEFOREDELETE()).compareTo(new BigDecimal(p2.getIDAYSLEFTBEFOREDELETE())));
+//        recordings.sort((p1, p2) -> new BigDecimal(p1.getIDAYSLEFTBEFOREDELETE()).compareTo(new BigDecimal(p2.getIDAYSLEFTBEFOREDELETE())));
+        java.util.Collections.sort(recordings, new Comparator<ParsedRecording>() {
+            @Override
+            public int compare(ParsedRecording p1, ParsedRecording p2) {
+                return new BigDecimal(p1.getIDAYSLEFTBEFOREDELETE()).compareTo(new BigDecimal(p2.getIDAYSLEFTBEFOREDELETE()));
+            }
+        });
         return recordings;
     }
 

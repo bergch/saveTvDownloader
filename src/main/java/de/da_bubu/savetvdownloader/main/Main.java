@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
@@ -84,13 +85,13 @@ public class Main {
     public static void main(String[] args) {
 
         Options options = new Options();
-        options.addOption(CommandLineArguments.DB, true, "local path");
-        options.addOption(CommandLineArguments.DBHOST, true, "local path");
-        options.addOption(CommandLineArguments.DBPASSWORD, true, "local path");
-        options.addOption(CommandLineArguments.DBPORT, true, "local path");
-        options.addOption(CommandLineArguments.DBUSER, true, "local path");
-        options.addOption(CommandLineArguments.SAVETVPASSWORD, true, "local path");
-        options.addOption(CommandLineArguments.SAVETVUSER, true, "local path");
+        options.addOption(CommandLineArguments.DB, true, "data base name");
+        options.addOption(CommandLineArguments.DBHOST, true, "data base host");
+        options.addOption(CommandLineArguments.DBPASSWORD, true, "bata base password");
+        options.addOption(CommandLineArguments.DBPORT, true, "data base port");
+        options.addOption(CommandLineArguments.DBUSER, true, "data base user");
+        options.addOption(CommandLineArguments.SAVETVPASSWORD, true, "save tv password");
+        options.addOption(CommandLineArguments.SAVETVUSER, true, "save tv user");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
@@ -108,6 +109,9 @@ public class Main {
         String saveTvUser = cmd.getOptionValue(CommandLineArguments.SAVETVUSER);
         String saveTvPassword = cmd.getOptionValue(CommandLineArguments.SAVETVPASSWORD);
 
+        
+        
+        
         Main main = new Main(dbName, dbHost, dbPassword, dbPort, dbUser, saveTvUser, saveTvPassword);
         try {
             main.start();

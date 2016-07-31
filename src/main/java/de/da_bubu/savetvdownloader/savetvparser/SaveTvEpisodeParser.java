@@ -34,7 +34,6 @@ public class SaveTvEpisodeParser {
 
             ParsedRecording recording = new ParsedRecording();
             for (String arrtibName : ParsedRecording.ATTRIBUTES) {
-                System.out.println(arrtibName);
                 String val = "";
                 if (arrtibName.equals("ITELECASTID")) {
                      val = new BigDecimal(jsonRecording.getAsJsonObject().get(arrtibName).getAsString()).toString();

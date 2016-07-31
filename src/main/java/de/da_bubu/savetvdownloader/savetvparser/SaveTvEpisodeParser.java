@@ -3,6 +3,7 @@ package de.da_bubu.savetvdownloader.savetvparser;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,17 @@ import com.google.gson.JsonSyntaxException;
 import de.da_bubu.savetvdownloader.main.Main;
 
 public class SaveTvEpisodeParser {
+
+    static DecimalFormat format = getDFormat();
+
+    static private DecimalFormat getDFormat() {
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(0);
+        df.setMinimumFractionDigits(0);
+        df.setGroupingUsed(false);
+        df.setMaximumIntegerDigits(309);
+        return df;
+    }
 
     public List<ParsedRecording> parse(String toParse)
             throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -36,9 +48,9 @@ public class SaveTvEpisodeParser {
             for (String arrtibName : ParsedRecording.ATTRIBUTES) {
                 String val = "";
                 if (arrtibName.equals("ITELECASTID")) {
-                     val = new BigDecimal(jsonRecording.getAsJsonObject().get(arrtibName).getAsString()).toString();
+                    val = format.format(new BigDecimal(jsonRecording.getAsJsonObject().get(arrtibName).getAsString()));
                 } else {
-                     val = jsonRecording.getAsJsonObject().get(arrtibName).getAsString();
+                    val = jsonRecording.getAsJsonObject().get(arrtibName).getAsString();
                     val = val.replace("'", "");
                 }
                 Class<? extends ParsedRecording> clazz = recording.getClass();

@@ -1,5 +1,7 @@
 package de.da_bubu.savetvdownloader.savetvparser;
 
+import java.nio.charset.Charset;
+
 public class ParsedRecording {
 
     public static final String[] ATTRIBUTES = { "DENDDATE", "SSTATUS", "DSTARTDATE",
@@ -270,7 +272,7 @@ public class ParsedRecording {
     }
 
     public String getFileName() {
-        return fileName;
+        return new String(fileName.getBytes(Charset.forName("UTF-8")), Charset.forName("ISO-8859-15"));
     }
     
    

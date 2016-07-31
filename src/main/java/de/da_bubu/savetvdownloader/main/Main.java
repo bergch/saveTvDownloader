@@ -15,7 +15,6 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
@@ -55,7 +54,7 @@ public class Main {
 
     public final static Log LOG = LogFactory.getLog(Main.class);
 
-    private static final String numberOfRecordings = "3000";
+    private static final String numberOfRecordings = "300";
 
     private HttpClient client;
 
@@ -122,7 +121,7 @@ public class Main {
         client = getNewHttpClient();
         try {
 
-            logonToSaveTV(saveTvUser, saveTvPassword);
+            loginToSaveTV(saveTvUser, saveTvPassword);
             String content = executeGet("https://www.save.tv/STV/M/obj/archive/JSON/VideoArchiveApi.cfm?iEntriesPerPage=" + numberOfRecordings
                     + "&iCurrentPage=1&iFilterType=1&sSearchString=&iTextSearchType=0&iChannelId=0&iTvCategoryId=0&iTvSubCategoryId=0&bShowNoFollower=false&iRecordingState=1&sSortOrder=StartDateDESC&iTvStationGroupId=0&iRecordAge=0&iDaytime=0");
             List<ParsedRecording> recordings = parser.parse(content);
@@ -222,11 +221,26 @@ public class Main {
      * @return
      * @throws ClientProtocolException
      * @throws IOException
+     * @throws InterruptedException
      */
-    private String getDownloadURL(ParsedRecording recording) throws IOException {
+    private String getDownloadURL(ParsedRecording recording) throws IOException, InterruptedException {
         LOG.info("get download URL for " + recording);
-        String response = executeGet("https://www.save.tv/STV/M/obj/cRecordOrder/croGetDownloadUrl2.cfm?TelecastId=" + recording.getITELECASTID()
-                + "&iFormat=" + "5" + "&bAdFree=" + "1");
+        boolean retry = true;
+        String response = "";
+        int count = 1;
+        while (retry) {
+            response = executeGet("https://www.save.tv/STV/M/obj/cRecordOrder/croGetDownloadUrl2.cfm?TelecastId=" + recording.getITELECASTID()
+                    + "&iFormat=" + "5" + "&bAdFree=" + "1");
+            if (response.contains("500 - Internal server error")) {
+                if (count > 10) {
+                    throw new RuntimeException("too many retries!");
+                }
+                Thread.sleep(1000L);
+                LOG.error("internal server errror detected - sleep 1s and retry #" + count++);
+            } else {
+                retry = false;
+            }
+        }
         JsonParser jsonParser = new JsonParser();
         JsonElement root = jsonParser.parse(response);
 
@@ -235,7 +249,7 @@ public class Main {
     }
 
     private String executeGet(String uri) throws IOException {
-
+        LOG.info("exec:" + uri);
         StringBuffer sb = new StringBuffer();
         HttpGet get = new HttpGet(uri);
         this.entity = null;
@@ -282,7 +296,7 @@ public class Main {
         }
     }
 
-    private boolean logonToSaveTV(String username, String password) throws ClientProtocolException, IOException {
+    private boolean loginToSaveTV(String username, String password) throws ClientProtocolException, IOException, InterruptedException {
 
         boolean logon_succeeded = true;
 
@@ -313,8 +327,9 @@ public class Main {
                 line = reader.readLine();
             }
             reader.close();
-//            LOG.info(buff.toString());
+            // LOG.info(buff.toString());
         }
+        Thread.sleep(1000L);
         return logon_succeeded;
 
     }

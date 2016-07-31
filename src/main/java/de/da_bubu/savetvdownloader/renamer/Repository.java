@@ -19,7 +19,7 @@ public class Repository {
 
     public Map<String, String> getRepo() {
         RepoReader repoReader = new RepoReader();
-        return repoReader.getRepoMap(getClass().getResource("repo.xml"));
+        return repoReader.getRepoMap(this.getClass().getResource("repo.xml"));
     }
 
     private static  Map<String, List<String>> res = null; 

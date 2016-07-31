@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyStore;
@@ -52,7 +53,7 @@ import de.da_bubu.savetvdownloader.savetvparser.SaveTvEpisodeParser;
 
 public class Main {
 
-    private final Log LOG = LogFactory.getLog(Main.class);
+    public final static Log LOG = LogFactory.getLog(Main.class);
 
     private static final String numberOfRecordings = "3000";
 
@@ -76,7 +77,7 @@ public class Main {
         MySQLRecordingManager.DBPASSWORD = dbPassword;
         MySQLRecordingManager.DBPORT = dbPort;
         MySQLRecordingManager.DBUSER = dbUser;
-        
+
         this.saveTvUser = saveTvUser;
         this.saveTvPassword = saveTvPassword;
         mysql = new MySQLRecordingManager();
@@ -109,9 +110,6 @@ public class Main {
         String saveTvUser = cmd.getOptionValue(CommandLineArguments.SAVETVUSER);
         String saveTvPassword = cmd.getOptionValue(CommandLineArguments.SAVETVPASSWORD);
 
-        
-        
-        
         Main main = new Main(dbName, dbHost, dbPassword, dbPort, dbUser, saveTvUser, saveTvPassword);
         try {
             main.start();
@@ -125,8 +123,7 @@ public class Main {
         try {
 
             logonToSaveTV(saveTvUser, saveTvPassword);
-            String content = executeGet("https://www.save.tv/STV/M/obj/archive/JSON/VideoArchiveApi.cfm?iEntriesPerPage="
-                    + numberOfRecordings
+            String content = executeGet("https://www.save.tv/STV/M/obj/archive/JSON/VideoArchiveApi.cfm?iEntriesPerPage=" + numberOfRecordings
                     + "&iCurrentPage=1&iFilterType=1&sSearchString=&iTextSearchType=0&iChannelId=0&iTvCategoryId=0&iTvSubCategoryId=0&bShowNoFollower=false&iRecordingState=1&sSortOrder=StartDateDESC&iTvStationGroupId=0&iRecordAge=0&iDaytime=0");
             List<ParsedRecording> recordings = parser.parse(content);
             LOG.info("found " + recordings.size() + " adfree recordings");
@@ -152,8 +149,8 @@ public class Main {
 
                 startdownload(recording);
             }
-        } catch (IOException | SQLException | NoSuchMethodException | SecurityException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException e) {
+        } catch (IOException | SQLException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException e) {
             LOG.error("should not happen", e);
             e.printStackTrace();
             throw e;
@@ -175,7 +172,12 @@ public class Main {
         createParentDirs(f);
 
         LOG.info("Start download " + recording);
-        FileUtils.copyURLToFile(new URL(recording.getDownloadURL()), f);
+        try {
+            FileUtils.copyURLToFile(new URL(recording.getDownloadURL()), f);
+        } catch (MalformedURLException e) {
+            LOG.error("brocken URL:" + recording.getDownloadURL());
+            throw e;
+        }
 
         LOG.info("added as already downloaded:" + recording.getFileName());
 
@@ -194,8 +196,8 @@ public class Main {
             if (!src.renameTo(dest))
                 LOG.debug("The file " + " was moved successfully to: ..");
         } catch (Exception e) {
-            LOG.error("Could not move file " + recording.getFileName()
-                    + "from temporary directory to download directory. The error was:" + e.getMessage());
+            LOG.error("Could not move file " + recording.getFileName() + "from temporary directory to download directory. The error was:"
+                    + e.getMessage());
         }
 
     }
@@ -223,12 +225,12 @@ public class Main {
      */
     private String getDownloadURL(ParsedRecording recording) throws IOException {
         LOG.info("get download URL for " + recording);
-        String response = executeGet("https://www.save.tv/STV/M/obj/cRecordOrder/croGetDownloadUrl.cfm?TelecastId="
-                + recording.getITELECASTID() + "&iFormat=" + "0" + "&bAdFree=" + "1");
+        String response = executeGet("https://www.save.tv/STV/M/obj/cRecordOrder/croGetDownloadUrl2.cfm?TelecastId=" + recording.getITELECASTID()
+                + "&iFormat=" + "5" + "&bAdFree=" + "1");
         JsonParser jsonParser = new JsonParser();
         JsonElement root = jsonParser.parse(response);
 
-        return root.getAsJsonObject().get("ARRVIDEOURL").getAsJsonArray().get(2).toString().replace("\"", "");
+        return root.getAsJsonObject().get("DOWNLOADURL").getAsString();
 
     }
 
@@ -242,8 +244,7 @@ public class Main {
         this.entity = res.getEntity();
 
         if (this.entity != null) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(),
-                    Charset.forName("UTF-8")));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent(), Charset.forName("UTF-8")));
             String inputLine;
 
             while ((inputLine = reader.readLine()) != null) {
@@ -305,9 +306,14 @@ public class Main {
 
         if (entity != null) {
             BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-            while (reader.readLine() != null)
-                ;
+            String line = reader.readLine();
+            StringBuffer buff = new StringBuffer();
+            while (line != null) {
+                buff.append(line);
+                line = reader.readLine();
+            }
             reader.close();
+//            LOG.info(buff.toString());
         }
         return logon_succeeded;
 

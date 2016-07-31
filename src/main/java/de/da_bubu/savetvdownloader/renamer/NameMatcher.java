@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import javax.sound.midi.Receiver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import de.da_bubu.savetvdownloader.main.Main;
@@ -23,6 +24,11 @@ public class NameMatcher {
         Map<String, List<String>> map = repository.getEpisodeMap(); 
 
         Recording rec = new Recording();
+        if(recording.getSFOLGE() != null && !("".equals(recording.getSFOLGE()))) {
+            rec.setSeries(recording.getSTITLE());
+            rec.setName(recording.getSTITLE() +" - " + recording.getSFOLGE() + " - " + recording.getSSUBTITLE());
+            return rec;
+        }
         List<String> epsFronRepo = null;
         epsFronRepo = map.get(recording.getSTITLE());
 

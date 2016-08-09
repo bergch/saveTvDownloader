@@ -44,7 +44,7 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import de.da_bubu.savetvdownloader.db.MySQLRecordingManager;
+import de.da_bubu.savetvdownloader.db.MapDBRecordingManager;
 import de.da_bubu.savetvdownloader.renamer.NameMatcher;
 import de.da_bubu.savetvdownloader.renamer.Repository;
 import de.da_bubu.savetvdownloader.savetvparser.ParsedRecording;
@@ -62,7 +62,7 @@ public class Main {
 
     private SaveTvEpisodeParser parser = new SaveTvEpisodeParser();
 
-    private MySQLRecordingManager mysql = null;
+    private MapDBRecordingManager mysql = null;
 
     NameMatcher nameMatcher = new NameMatcher(new Repository());
 
@@ -70,26 +70,15 @@ public class Main {
 
     private String saveTvPassword;
 
-    public Main(String dbName, String dbHost, String dbPassword, String dbPort, String dbUser, String saveTvUser, String saveTvPassword) {
-        MySQLRecordingManager.DB = dbName;
-        MySQLRecordingManager.DBHOST = dbHost;
-        MySQLRecordingManager.DBPASSWORD = dbPassword;
-        MySQLRecordingManager.DBPORT = dbPort;
-        MySQLRecordingManager.DBUSER = dbUser;
-
+    public Main(String saveTvUser, String saveTvPassword) {
         this.saveTvUser = saveTvUser;
         this.saveTvPassword = saveTvPassword;
-        mysql = new MySQLRecordingManager();
+        mysql = new MapDBRecordingManager();
     }
 
     public static void main(String[] args) {
 
         Options options = new Options();
-        options.addOption(CommandLineArguments.DB, true, "data base name");
-        options.addOption(CommandLineArguments.DBHOST, true, "data base host");
-        options.addOption(CommandLineArguments.DBPASSWORD, true, "bata base password");
-        options.addOption(CommandLineArguments.DBPORT, true, "data base port");
-        options.addOption(CommandLineArguments.DBUSER, true, "data base user");
         options.addOption(CommandLineArguments.SAVETVPASSWORD, true, "save tv password");
         options.addOption(CommandLineArguments.SAVETVUSER, true, "save tv user");
 
@@ -101,15 +90,10 @@ public class Main {
             throw new RuntimeException(e1);
         }
 
-        String dbName = cmd.getOptionValue(CommandLineArguments.DB);
-        String dbHost = cmd.getOptionValue(CommandLineArguments.DBHOST);
-        String dbPassword = cmd.getOptionValue(CommandLineArguments.DBPASSWORD);
-        String dbPort = cmd.getOptionValue(CommandLineArguments.DBPORT);
-        String dbUser = cmd.getOptionValue(CommandLineArguments.DBUSER);
         String saveTvUser = cmd.getOptionValue(CommandLineArguments.SAVETVUSER);
         String saveTvPassword = cmd.getOptionValue(CommandLineArguments.SAVETVPASSWORD);
 
-        Main main = new Main(dbName, dbHost, dbPassword, dbPort, dbUser, saveTvUser, saveTvPassword);
+        Main main = new Main(saveTvUser, saveTvPassword);
         try {
             main.start();
         } catch (Exception e) {
